@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_scene/scene.dart';
 import 'package:roulette/roulette/spin_plan.dart';
+import 'package:roulette/roulette/stage_audio.dart';
 import 'package:roulette/roulette/stage_effects.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
@@ -102,14 +103,16 @@ final _fireworkColors = [
 /// [Scene.initializeStaticResources] の完了後に生成すること。
 class RouletteStage {
   /// [wheelTexture] を面に貼ったホイールと、[backdropTexture] を貼った背景で
-  /// シーンを組む。[glowTexture] は光の粒の形。
+  /// シーンを組む。[glowTexture] は光の粒の形。[audio] を渡すと効果音を鳴らす。
   new({
     required this.names,
     required TextureSource wheelTexture,
     required TextureSource backdropTexture,
     required TextureSource glowTexture,
-  }) {
+    StageAudio? audio,
+  }) : _audio = audio {
     _build(wheelTexture, backdropTexture, glowTexture);
+    audio?.attach(scene);
   }
 
   /// ホイールに並ぶニックネーム。区画の順。
@@ -119,6 +122,7 @@ class RouletteStage {
   final Scene scene = Scene();
   final math.Random _random = math.Random.secure();
   final math.Random _fxRandom = math.Random();
+  final StageAudio? _audio;
 
   late final Node _spinner;
   late final Node _pointer;
@@ -398,6 +402,7 @@ class RouletteStage {
     if (phase.value == value) return;
     phase.value = value;
     _phaseTime = 0;
+    _audio?.onPhase(value);
   }
 
   /// 毎フレーム呼ぶ。
@@ -445,6 +450,7 @@ class RouletteStage {
     _flash *= math.exp(-dt * 3.5);
     _shake *= math.exp(-dt * 5);
 
+    _audio?.update(dt, _time, phase.value, _speed);
     _updateParticles(dt);
     _updateMood(dt);
     _updateBulbs(dt);
@@ -455,6 +461,7 @@ class RouletteStage {
   void _onCrossing() {
     _pointerKick = 1;
     _crossFlash = 1;
+    _audio?.onCrossing(phase.value, _speed);
     switch (phase.value) {
       case StagePhase.creep:
         _sparks.burst(45);
@@ -531,6 +538,7 @@ class RouletteStage {
       _fireworkColors[_fxRandom.nextInt(_fireworkColors.length)],
     );
     emitter.burst(170);
+    _audio?.onFirework();
   }
 
   void _updateMood(double dt) {
@@ -715,8 +723,9 @@ class RouletteStage {
     );
   }
 
-  /// 通知用の [ValueNotifier] を破棄する。
+  /// 効果音を止め、通知用の [ValueNotifier] を破棄する。
   void dispose() {
+    _audio?.dispose();
     phase.dispose();
     pointedIndex.dispose();
     spinning.dispose();

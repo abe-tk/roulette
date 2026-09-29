@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_scene: ^0.23.0
+  flutter_scene_soloud: ^0.1.2
   vector_math: ^2.4.3
 
 dev_dependencies:
@@ -23,4 +24,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/sounds/
     - assets/nicknames.txt

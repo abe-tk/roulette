@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_scene/scene.dart';
 import 'package:roulette/nickname/nickname_master.dart';
 import 'package:roulette/roulette/roulette_stage.dart';
+import 'package:roulette/roulette/stage_audio.dart';
 import 'package:roulette/roulette/wheel_texture.dart';
 
 /// ニックネームマスタを読み込み、ルーレットを表示する画面。
@@ -46,6 +47,7 @@ class _RoulettePageState extends State<RoulettePage> {
           wheelTexture: wheelTexture,
           backdropTexture: backdropTexture,
           glowTexture: glowTexture,
+          audio: StageAudio(),
         ),
       );
     } on Object catch (error) {
